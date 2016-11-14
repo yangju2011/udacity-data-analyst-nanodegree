@@ -1,3 +1,0 @@
-- Use basic Python code to clean a dataset for analysis
-- Run code to create visualizations from the wrangled data
-- Analyze trends shown in the visualizations and report your conclusions
