@@ -1,8 +1,6 @@
-- DATA EXTRACTION FUNDAMENTALS: Properly assess the quality of a dataset; Understand how to parse CSV files and XLS with XLRD; Use JSON and Web APIs
-- DATA IN MORE COMPLEX FORMATS: Understand XML design principles; Parse XML & HTML; Scrape websites for relevant data
-- DATA QUALITY: Understand common sources for dirty data; Measure the quality of a dataset & apply a blueprint for cleaning; Properly audit validity, accuracy, completeness, consistency,
-and uniformity of a dataset
-- WORKING WITH MONGODB: Understand how data is modeled in MongoDB; Run field and projection queries; Import data into MongoDB using mongoimport; Utilize operators like $gt, $lt, $exists, $regex; Query arrays and using $in and $all operators; Change entries using $update, $set, $unset
-- ANALYZING DATA: Identify common examples of the aggregation framework; Use aggregation pipeline operators $match, $project, $unwind, $group
-- SQL FOR DATA ANALYSIS: Understand how data is structured in SQL; Run queries to summarize data; Use joins to combine information across tables; Create tables and import data from csv
-- CASE STUDY OPENSTREETMAP DATA: Use iterative parsing for large datafiles; Understand XML elements in OpenStreetMap
+This folder contains
+1. A pdf document containing your answers to the rubric questions.
+2. Python code used in auditing and cleaning your dataset for the final project. 
+3. A text file containing a link to the map position in this project, a short description of the area and a reason for choice.
+4. An .osm file containing a sample part of the map region used (around 1 - 10 MB in size). 
+5. A text file containing a list of Web sites, books, forums, blog posts, github repositories etc referred to or used in this submission
