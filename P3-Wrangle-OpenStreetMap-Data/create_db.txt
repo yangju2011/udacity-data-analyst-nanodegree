@@ -1,0 +1,76 @@
+Created on Sun Nov 13 15:05:49 2016
+
+@author: Ju
+"""
+# reference
+# https://discussions.udacity.com/t/importing-csv-to-table-in-db-with-preferred-datatypes/181209/4
+# https://discussions.udacity.com/t/creating-db-file-from-csv-files-with-non-ascii-unicode-characters/174958/6
+
+.open Manhattan.db
+
+CREATE TABLE Node
+    (
+    NodeId INTEGER PRIMARY KEY,
+    Latitude REAL,
+    Longitude REAL,
+    UserName TEXT,
+    UserId INTEGER,
+    Version TEXT,
+    Changeset INTEGER,
+    Timestamp TEXT
+    );
+     
+
+CREATE TABLE Way
+    (
+    WayId INTEGER PRIMARY KEY,
+    UserName TEXT,
+    UserId INTEGER,
+    Version TEXT,
+    Changeset INTEGER,
+    Timestamp TEXT
+    );
+
+CREATE TABLE Node_tag
+    (
+    NodetagId INTEGER PRIMARY KEY,
+    NodeId INTEGER,
+    Key TEXT,
+    Value TEXT,
+    Type TEXT,
+    FOREIGN KEY (NodeId) REFERENCES Node (NodeId)
+    );
+    
+
+CREATE TABLE Way_node
+    (
+    WaynodeId INTEGER PRIMARY KEY,
+    WayId INTEGER,
+    NodeId INTEGER,
+    Position INTEGER,
+    FOREIGN KEY (NodeId) REFERENCES Node (NodeId),
+    FOREIGN KEY (WayId) REFERENCES Way (WayId)
+    );   
+     
+
+CREATE TABLE Way_tag
+    (
+    WaytagId INTEGER PRIMARY KEY,
+    WayId INTEGER,
+    Key TEXT,
+    Value TEXT,
+    Type TEXT,
+    FOREIGN KEY (WayId) REFERENCES Way (WayId)
+    );  
+
+.mode csv
+.separator ","
+.import nodes_noheader.csv Node
+.import ways_noheader.csv Way
+.import nodes_tags_noheader.csv Node_tag
+.import ways_tags_noheader.csv Way_tag
+.import ways_nodes_noheader.csv Way_node
+
+
+
+
