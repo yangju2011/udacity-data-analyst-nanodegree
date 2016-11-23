@@ -1,5 +1,0 @@
-http://stackoverflow.com/questions/578406/what-is-the-ultimate-postal-code-and-zip-regex
-http://stackoverflow.com/questions/3095434/inserting-newlines-in-xml-file-generated-via-xml-etree-elementtree-in-python
-http://stackoverflow.com/questions/23261852/adding-column-in-csv-python-and-enumerating-it
-https://discussions.udacity.com/t/importing-csv-to-table-in-db-with-preferred-datatypes/181209/4
-https://discussions.udacity.com/t/creating-db-file-from-csv-files-with-non-ascii-unicode-characters/174958/6
