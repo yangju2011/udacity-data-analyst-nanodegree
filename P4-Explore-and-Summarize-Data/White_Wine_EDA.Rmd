@@ -7,6 +7,7 @@ library(readr)
 library(gridExtra)
 library(dplyr)
 library(GGally)
+library(corrplot)
 library(memisc)
 ```
 
@@ -110,12 +111,12 @@ Quality and most input variables have a bell shape normal distribution, except t
 
 The spike feature of the histogram of residual.sugar resembles that of a log scale. I transform the x scale into log10 to better represent the distribution. 
 
-```{r echo=FALSE,message=FALSE, warning=FALSE, Log_scale}
+```{r echo=FALSE,message=FALSE, warning=FALSE, Log_scale, fig.width=8,fig.height=4}
 # log scale, x+1
 p4_log <-
   ggplot(aes(x = residual.sugar), data = df) +
   geom_histogram() +
-  scale_x_log10()
+  scale_x_log10(breaks = c(1,3,10))
 
 grid.arrange(p4,p4_log,nrow = 1)
 ```
@@ -125,12 +126,12 @@ Using smaller bins and geom_freqpoly, we can see the two populations of residual
 ```{r echo=FALSE,message=FALSE, warning=FALSE, freqpoly_residual_sugar}
 ggplot(aes(x = residual.sugar), data = df) +
   geom_freqpoly(bins = 20) +
-  scale_x_log10(breaks = seq(0,10,1))
+  scale_x_log10(breaks = c(1,3,10))
 ```
 
 Using different bins, I can see additional spikes of citric acid appear with more bins at 0.50, 0.72, in addition to the primary peak at 0.3. These additional peaks may represent features of certain wines. 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE,citric.acid.spikes}
+```{r echo=FALSE, message=FALSE, warning=FALSE,citric.acid.spikes,fig.width=12,fig.height=8}
 p3a<-
   ggplot(aes(x = citric.acid), data = df) +
   geom_freqpoly(bins = 20) +
@@ -154,7 +155,7 @@ grid.arrange(p3a,p3b,p3c, p3d,nrow = 2, ncol = 2)
 
 The distribution of alcohol in the dataset is a bell shape with small bin, and gets less normal with more bins. This suggests a wide variance of alcohol. 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE,alcohol_freqpoly}
+```{r echo=FALSE, message=FALSE, warning=FALSE,alcohol_freqpoly,fig.width=12,fig.height=8}
 p11a<-
   ggplot(aes(x = alcohol), data = df) +
   geom_freqpoly(bins = 10)  +
@@ -211,33 +212,33 @@ I recognized that there are outliers in the data from the histogram. At this poi
 
 
 # Bivariate Plots Section
-```{r echo=FALSE, message=FALSE, warning=FALSE,Bivariate_Plots_ggpair}
-set.seed(2000)
+```{r echo=FALSE, message=FALSE, warning=FALSE,Bivariate_Plots_corrplot, fig.width=6,fig.height=6}
 df_subset <- subset(df,select = c("fixed.acidity","volatile.acidity","citric.acid","residual.sugar","chlorides" ,
                                   "free.sulfur.dioxide","bound.sulfur.dioxide","sulphates", 
                                   "density", "pH","alcohol","quality"))
-names(df_subset)
-ggpairs(df_subset[sample.int(nrow(df_subset),1000),])+
-  theme(axis.line=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks=element_blank())
+M<-cor(df_subset)
+corrplot(M,method = 'square')
 ```
 
-Using ggpairs, I got a general idea of the relationship between pairs of variables. (see the ggpair.png for full image).
+```{r echo=FALSE, message=FALSE, warning=FALSE,Bivariate_Plots_ggpair, fig.width=16,fig.height=12}
+set.seed(2000)
+ggpairs(df_subset[sample.int(nrow(df_subset),1000),])
+```
 
-I used the orginal quality (int) to calculate the correlation coefficient between input variables and quality, ranking from the highest to the lowest: 
+Using corrplot, I got a general idea of the relationship between pairs of variables. And ggpair shows the correlation coefficient of different pairs of variables. 
 
-1. alcohol 0.431
-2. density -0.298
-3. chlorides -0.224
-4. bound.sulfur.dioxide -0.221
-5. volatile.acidity -0.181
-6. pH 0.128
-7. residual.sugar -0.103
-8. fixed.acidity -0.0789
-9. sulphates 0.0548
-10. free.sulfur.dioxide 0.0387
-11. citric.acid -0.0366
+I used the orginal quality (int) to calculate the correlation coefficient between input variables and quality. As the corrplot color shows, for quality, the strongest correlations are alcochol (positive) and density (negative). All correlation ranking from the highest to the lowest: 
+1-alcohol 0.431
+2-density -0.298
+3-chlorides -0.224
+4-bound.sulfur.dioxide -0.221
+5-volatile.acidity -0.181
+6-pH 0.128
+7-residual.sugar -0.103
+8-fixed.acidity -0.0789
+9-sulphates 0.0548
+10-free.sulfur.dioxide 0.0387
+11-citric.acid -0.0366
 
 All correlations are not strong. The highest 4 correlations are alcohol, density, chlorides and bound.sulfur.dioxide. I plot these variables against quality in scatterplot. By adjusting the limit to the bottom 99.9%, I removed some outliers in the dataset. 
 
@@ -287,135 +288,179 @@ ggplot(aes(x = chlorides, y = quality),data = df)+
 
 ```
 
-I am intested in understanding how wines of different quanltiy differ in these variables. First I wonder if the distribution of input variables differ in wines of different qualities.
+I am intested in understanding how wines of different quanltiy differ in these variables. I wonder if the distribution of input variables differ in wines of different qualities using freqpoly and boxplot. I analyze the 11 variables in the order of correlation coefficient with quality. 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE,freqpoly_by_quality, fig.width=16,fig.height=12}
-pr1<-
-  ggplot(aes(x = fixed.acidity, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor),binwidth = 0.2) +
-  ylab('frequency') +
-  scale_x_continuous(breaks = seq(3,15,1))
 
-pr2<-
-  ggplot(aes(x = volatile.acidity, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor),binwidth = 0.02) +
-  ylab('frequency') +
-  scale_x_continuous(breaks = seq(0,0.9,0.1))
-
-pr3<-
-  ggplot(aes(x = citric.acid, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor),binwidth = 0.02) +
-  ylab('frequency') +
-  scale_x_continuous(breaks = seq(0,2,0.1))
-
-pr4<-
-  ggplot(aes(x = residual.sugar, y = ..count../sum(..count..)), data = df) +
+1. alcohol
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr11<-
+  ggplot(aes(x = alcohol, y = ..count../sum(..count..)), data = df) +
   geom_freqpoly(aes(color = quality_factor)) +
-  ylab('frequency') +
-  scale_x_log10()
+  ylab('frequency')
+pb11<-ggplot(aes(x = quality_factor,y = alcohol), data = df) +
+  geom_boxplot()
 
-pr5<-
-  ggplot(aes(x = chlorides, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor),binwidth = 0.003) +
-  ylab('frequency') +
-  scale_x_continuous(breaks = seq(0,0.3,0.05))
+grid.arrange(pr11,pb11,nrow=1,widths = 2:1)
+```
+Alcohol does not always show clear peaks but displays a overall shift to the right in freqpoly as quality goes higher. In boxplot, it is clear that quality shows a U shape trend against alcohol with the lowest median at 5, and higher quality wines tend to have higher alcohol. Notice there are a lof of outliers at quality 5 and the population median is 5.8. This suggests that right below average there are a huge variance in alcohol. 
 
-pr6<-
-  ggplot(aes(x = free.sulfur.dioxide, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor),binwidth = 4) +
-  ylab('frequency')+
-  scale_x_continuous(breaks = seq(0,300,20))
-
-pr7<-
-  ggplot(aes(x = bound.sulfur.dioxide, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor),binwidth = 6) +
-  ylab('frequency')+
-  scale_x_continuous(breaks = seq(0,340,20))
-
+2. density
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
 pr8<-
   ggplot(aes(x = density, y = ..count../sum(..count..)), data = df) +
   geom_freqpoly(aes(color = quality_factor),binwidth = 0.0005) +
   ylab('frequency')+
   scale_x_continuous(breaks = seq(0.9,1.04,0.005))
+pb8<-ggplot(aes(x = quality_factor,y = density), data = df) +
+  geom_boxplot()
 
+grid.arrange(pr8,pb8,nrow=1,widths = 2:1)
+```
+
+In freqpoly, density is shifting to the left as quality goes higher, and in boxplot, density goes down as quality goes up. Such negative trend is consistent with the calculated correlation coefficient. 
+
+3. chlorides
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr5<-
+  ggplot(aes(x = chlorides, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor),binwidth = 0.003) +
+  ylab('frequency') +
+  scale_x_continuous(breaks = seq(0,0.3,0.05))
+pb5<-ggplot(aes(x = quality_factor,y = chlorides), data = df) +
+  geom_boxplot()
+
+grid.arrange(pr5,pb5,nrow=1,widths = 2:1)
+```
+
+Chlorides similar to density, also shows a left shift of the peak in freqpoly, and downward trend in boxplot.
+Notice there are a lot of outliers shown in the boxplot, which can also be seen in freqpoly. I decide to remove these outliers to visualize the trend more clearly. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = quality_factor,y = chlorides), data = df) +
+  geom_boxplot() +
+  ylim(min(df$chlorides),quantile(df$chlorides,0.95)) 
+```
+
+After removing the top 5% outliers, I could see a clear downward trend as quality goes higher than 5. 
+
+4. bound.sulfur.dioxide
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr7<-
+  ggplot(aes(x = bound.sulfur.dioxide, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor),binwidth = 6) +
+  ylab('frequency')+
+  scale_x_continuous(breaks = seq(0,340,20))
+pb7<-ggplot(aes(x = quality_factor,y = bound.sulfur.dioxide), data = df) +
+  geom_boxplot()
+
+grid.arrange(pr7,pb7,nrow=1,widths = 2:1)
+```
+Bound SO2 shows a left shift in freqpoly and downward trend in boxplot, suggesting that as quality goes up, bound SO2 goes down. 
+
+5. volatile.acidity
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr2<-
+  ggplot(aes(x = volatile.acidity, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor),binwidth = 0.02) +
+  ylab('frequency') +
+  scale_x_continuous(breaks = seq(0,0.9,0.1))
+pb2<-ggplot(aes(x = quality_factor,y = volatile.acidity), data = df) +
+  geom_boxplot()
+
+grid.arrange(pr2,pb2,nrow=1,widths = 2:1)
+```
+Volatile acidity shows a left shift in freqpoly 5-6 yet the trend is less obvious in boxplot with a lot of outliers in the data. 
+
+6. pH
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
 pr9<-
   ggplot(aes(x = pH, y = ..count../sum(..count..)), data = df) +
   geom_freqpoly(aes(color = quality_factor),binwidth = 0.02) +
   ylab('frequency')+
   scale_x_continuous(breaks = seq(2.7,3.9,0.1))
+pb9<-ggplot(aes(x = quality_factor,y = pH), data = df) +
+  geom_boxplot()
 
+grid.arrange(pr9,pb9,nrow=1,widths = 2:1)
+```
+pH shows similar distribution across different quality and seems to have an upward trend in boxplot. 
+
+7. residual.sugar
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr4<-
+  ggplot(aes(x = residual.sugar, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor)) +
+  ylab('frequency') +
+  scale_x_log10()
+pb4<-ggplot(aes(x = quality_factor,y = residual.sugar), data = df) +
+  geom_boxplot()
+
+grid.arrange(pr4,pb4,nrow=1,widths = 2:1)
+```
+Residual sugar shows similar bimodal distribution at different quality and does not seem to differ in boxplot. 
+As I have discussed in part1, there is one sweet wine which as the boxplot shows, is a wine at quality 6, clearly an outlier.
+
+8. fixed.acidity
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr1<-
+  ggplot(aes(x = fixed.acidity, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor),binwidth = 0.2) +
+  ylab('frequency') +
+  scale_x_continuous(breaks = seq(3,15,1))
+pb1<-
+  ggplot(aes(x = quality_factor,y = fixed.acidity), data = df) +
+  geom_boxplot()
+
+grid.arrange(pr1,pb1,nrow=1,widths = 2:1)
+```
+Fixed acidity shows similar normal distribution across different quality and does not show clear trend in boxplot. 
+
+9. sulphates
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
 pr10<-
   ggplot(aes(x = sulphates, y = ..count../sum(..count..)), data = df) +
   geom_freqpoly(aes(color = quality_factor),binwidth = 0.02) +
   ylab('frequency')+
   scale_x_continuous(breaks = seq(0.2,1.2,0.1))
-
-pr11<-
-  ggplot(aes(x = alcohol, y = ..count../sum(..count..)), data = df) +
-  geom_freqpoly(aes(color = quality_factor)) +
-  ylab('frequency')
-
-grid.arrange(pr1,pr2,pr3,pr4,pr5,
-             pr6,pr7,pr8,pr9,pr10,
-             pr11,nrow = 6, ncol = 2)
-```
-
-Wines with different quality scores seem to have a smilar distribution of fixed acidity with a peak around 7, multiple peaks of citric acid at similar positions, similar bimodal distribution of residual sugar, similar distribution of free SO2, pH, and sulphates. 
-
-Volatile acidicity's peak is shifted to left as quality goes higer, so does chlorides, bound SO2, density. 
-
-Alcohol does not always show clear peaks but displays a overall shift to the right as quality goes higher. 
-
-To better capture the population difference, I plot the data in boxplots using quality_factor and input variables.
-
-```{r echo=FALSE, message=FALSE, warning=FALSE,boxplot_by_quality, fig.width=16,fig.height=12}
-pb1<-
-  ggplot(aes(x = quality_factor,y = fixed.acidity), data = df) +
-  geom_boxplot()
-
-pb2<-ggplot(aes(x = quality_factor,y = volatile.acidity), data = df) +
-  geom_boxplot()
-
-pb3<-ggplot(aes(x = quality_factor,y = citric.acid), data = df) +
-  geom_boxplot()
-
-pb4<-ggplot(aes(x = quality_factor,y = residual.sugar), data = df) +
-  geom_boxplot()
-
-pb5<-ggplot(aes(x = quality_factor,y = chlorides), data = df) +
-  geom_boxplot()
-
-pb6<-ggplot(aes(x = quality_factor,y = free.sulfur.dioxide), data = df) +
-  geom_boxplot()
-
-pb7<-ggplot(aes(x = quality_factor,y = bound.sulfur.dioxide), data = df) +
-  geom_boxplot()
-
-pb8<-ggplot(aes(x = quality_factor,y = density), data = df) +
-  geom_boxplot()
-  
-pb9<-ggplot(aes(x = quality_factor,y = pH), data = df) +
-  geom_boxplot()
-
 pb10<-ggplot(aes(x = quality_factor,y = sulphates), data = df) +
   geom_boxplot()
 
-pb11<-ggplot(aes(x = quality_factor,y = alcohol), data = df) +
+grid.arrange(pr10,pb10,nrow=1,widths = 2:1)
+```
+Sulphates shows similar distribution across different quality and does not show clear trend in boxplot. 
+
+10. free.sulfur.dioxide
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr6<-
+  ggplot(aes(x = free.sulfur.dioxide, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor),binwidth = 4) +
+  ylab('frequency')+
+  scale_x_continuous(breaks = seq(0,300,20))
+pb6<-ggplot(aes(x = quality_factor,y = free.sulfur.dioxide), data = df) +
   geom_boxplot()
 
-grid.arrange(pb1,pb2,pb3,pb4,pb5,
-             pb6,pb7,pb8,pb9,pb10,
-             pb11,nrow = 3, ncol = 4)
+grid.arrange(pr6,pb6,nrow=1,widths = 2:1)
 ```
+Free SO2 shows similar distribution across different quality and does not show clear trend in boxplot. Notice there are a lot of outliers in the dataset. 
 
-Similar to the freqpoly plot, boxplot shows a downward trend of quality against density, chlorides, bound SO2. The trend is less clear for volatile acidity. Quality shows a U shape trend against alcohol with the lowest median at 5, and higher quality wines tend to have higher alcohol. 
+11. citric.acid
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=12,fig.height= 4}
+pr3<-
+  ggplot(aes(x = citric.acid, y = ..count../sum(..count..)), data = df) +
+  geom_freqpoly(aes(color = quality_factor),binwidth = 0.02) +
+  ylab('frequency') +
+  scale_x_continuous(breaks = seq(0,2,0.1))
+pb3<-ggplot(aes(x = quality_factor,y = citric.acid), data = df) +
+  geom_boxplot()
 
-In addition, higher quality wines tend to have higher pH, lower residual sugar and higher citric acid. 
+grid.arrange(pr3,pb3,nrow=1,widths = 2:1)
 
-As I have discussed in part1, there is one sweet wine which as the boxplot shows, is a wine at quality 6, clearly an outlier.
+```
+Citric acid shows similar distribution across different quality with multiple peaks and does not show clear trend in boxplot. There are many outliers at biggar value. 
 
 
-From ggpair results of thewhole dataset, the highest 2 correlation values are
+
+From ggpair and corrplot of the whole dataset, the 2 strongest correlation are
 density/residual.sugar 0.838 
 density/alcohol -0.791
 
@@ -547,7 +592,7 @@ The median and mean of alcohol % by volume is increasing as quality goes up in t
 f1<-
   ggplot(aes(x = residual.sugar), data = df) +
   geom_freqpoly(bins = 20) +
-  scale_x_log10(breaks = seq(0,10,1))+
+  scale_x_log10(breaks = c(1,3,10))+
   ggtitle('Distribution of residual sugar') +
   xlab('Residual Sugar (g/L)') +
   ylab('Count')+
@@ -559,7 +604,6 @@ f1<-
         legend.title = element_text(size = 12),
         plot.title = element_text(size = 12, face = 'bold',hjust = 0.5))
 
-# adjust color of legend!!!
 f2<-
   ggplot(aes(x = alcohol, y = density,color = residual.sugar_bucket),data = df)+
   geom_point(alpha = 1/6,size = 1.2)+
