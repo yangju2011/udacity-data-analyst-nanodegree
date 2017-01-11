@@ -1,0 +1,4 @@
+http://machinelearningmastery.com/how-to-tune-algorithm-parameters-with-scikit-learn/
+http://scikit-learn.org/stable/auto_examples/feature_stacker.html#sphx-glr-auto-examples-feature-stacker-py
+http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
+http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html
