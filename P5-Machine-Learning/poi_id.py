@@ -33,6 +33,9 @@ with open("final_project_dataset.pkl", "r") as data_file:
     
 ### Explore the dataset
 def exploration(data_dict):
+    '''given a dictionary, print the number of keys, number of features, an example data point, 
+    number and percentage of poi'''
+    
     total_people = len(data_dict)
     print "number of people in the dataset:", total_people
     # print "the dataset information: ", data_dict
