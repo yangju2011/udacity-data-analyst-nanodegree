@@ -1,12 +1,12 @@
 (lp0
 S'poi'
 p1
-aS'salary'
+aS'exercised_stock_options'
 p2
-aS'expenses'
-p3
-aS'from_poi_to_this_person_ratio'
-p4
 aS'from_this_person_to_poi_ratio'
+p3
+aS'expenses'
+p4
+aS'salary'
 p5
 a.

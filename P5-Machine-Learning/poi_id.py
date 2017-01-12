@@ -5,6 +5,7 @@ import pickle
 import pprint
 import matplotlib.pyplot as plt
 import numpy as np
+import itertools
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.grid_search import GridSearchCV
@@ -49,7 +50,7 @@ def exploration(data_dict):
     print "number of poi in the dataset: ", total_poi
     print "percentage of poi in the dataset: ", 1.0*total_poi/total_people
 
-exploration(data_dict)
+exploration(data_dict) 
 
 ### Task 2: Remove outliers
 features = ['salary','bonus']
@@ -81,6 +82,15 @@ plt.xlabel("salary")
 plt.ylabel("bonus")
 plt.show()    
 
+### Check if any other key can be people's names
+keys = []
+for k in data_dict:
+    keys.append(k)
+
+keys = sorted(keys)
+print keys ### notice 'THE TRAVEL AGENCY IN THE PARK' is not a name.
+
+data_dict.pop('THE TRAVEL AGENCY IN THE PARK', 0 ) ### the total is an aggregation of all salary and bonus
 ### After removing the 'TOTAL' key, summarize the dataset
 exploration(data_dict)
 
@@ -113,6 +123,7 @@ for e in data_dict:
 features_list  = ['poi',
                   'salary', 'deferral_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'expenses', 'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 'director_fees',
                  'to_messages', 'from_poi_to_this_person', 'from_messages', 'from_this_person_to_poi', 'shared_receipt_with_poi','from_poi_to_this_person_ratio','from_this_person_to_poi_ratio']
+
 
 
 data_array = featureFormat(data_dict, features_list)
@@ -163,18 +174,18 @@ plt.ylabel("Count")
 plt.show()
 
 ### features of high importance
-feature_index_list = []
 i = 0
 N = len(scores)
+features_score = []
 while i < N:
-    if scores[i] > 3:
-        feature_index_list.append(i)
+    features_score.append((features_list[i+1],scores[i]))
     i = i + 1
-features_list_in_use = [features_list[m+1] for m in feature_index_list]
-print features_list_in_use
+features_score = sorted(features_score, key = lambda x: x[1],reverse = True)
+print features_score
 
 ### Final feature selection
-features_list = ['poi','salary', 'expenses', 'from_poi_to_this_person_ratio', 'from_this_person_to_poi_ratio']
+features_list = ['poi', 'exercised_stock_options', 'from_this_person_to_poi_ratio', 'expenses','salary']
+
 
 
 ### find NaN features for a given variable
@@ -185,10 +196,10 @@ def qualify(data,variable):
     for k in data:
         if data[k][variable] == 'NaN':
             total_count = total_count + 1
-    return total_count
+    return total_count, 1.* total_count/len(data)
 
 for f in features_list :
-    print 'number of NaN value for', f, ':', qualify(data_dict,f)
+    print 'number and percentage of missing values for', f, ':', qualify(data_dict,f)
 
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
@@ -199,37 +210,28 @@ my_dataset = data_dict
 ### visualize poi
 
 data = featureFormat(my_dataset, features_list, sort_keys = True)
-print data[0]
-### Financial features
-for point in data:
-    poi = point[0]
-    if (poi - 0.0) < 0.001: # poi == 0
-        point_color = 'b'
-    else:
-        point_color = 'r'
-    f1 = point[1]
-    f2 = point[2]
-    plt.scatter(f1,f2,color = point_color)
 
-plt.xlabel('salary')
-plt.ylabel('expenses')
-plt.show()
+### Any 2 features
+N = len(features_list) 
+features_index_list =  range(1,N)
+two_features = itertools.combinations(features_index_list, 2)
 
-
-### email features
-for point in data:
-    poi = point[0]
-    if (poi - 0.0) < 0.001:
-        point_color = 'b'
-    else:
-        point_color = 'r'
-    f1 = point[3]
-    f2 = point[4]
-    plt.scatter(f1,f2,color = point_color)
-
-plt.xlabel('from_poi_to_this_person_ratio')
-plt.ylabel('from_this_person_to_poi_ratio')
-plt.show()
+for pair in two_features:
+    i = pair[0]
+    j = pair[1]
+    for point in data:
+        poi = point[0]
+        if (poi - 0.0) < 0.001: # poi == 0
+            point_color = 'b'
+        else:
+            point_color = 'r'
+        f1 = point[i]
+        f2 = point[j]
+        plt.scatter(f1,f2,color = point_color)
+    
+    plt.xlabel(features_list[i])
+    plt.ylabel(features_list[j])
+    plt.show()
 
 ########################################################################################################################
 
@@ -249,7 +251,7 @@ names = ["Naive Bayes","Linear SVM", "RBF SVM","Decision Tree"]
     
 classifiers = [
         GaussianNB(),
-        SVC(kernel="linear",C = 1000),
+        SVC(kernel="linear",C = 1),
         SVC(kernel="rbf",gamma=0.1,C = 1000),
         DecisionTreeClassifier()
         ]
@@ -257,7 +259,7 @@ classifiers = [
 features = np.array(my_features)
 poi = np.array(my_poi)
 
-def performance(clf):
+def performance(clf,features,poi):
     '''
     split features, labels using StratifiedShuffleSplit and
     calculate the total performance metrics: accuracy, precision, recall, and F1-score of a classifier clf
@@ -307,7 +309,7 @@ for name, clf in zip(names, classifiers):
     print  name
     print
     print '################'
-    performance(clf)
+    performance(clf,features,poi)
 
         
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
@@ -317,24 +319,30 @@ for name, clf in zip(names, classifiers):
 ### stratified shuffle split cross validation. For more info: 
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
-min_samples_splits  = [2,4,8,16] 
-min_samples_leafs = [1,2,3,4]
-criterions = ['gini','entropy']
-for c in criterions:
-    for l in min_samples_leafs:
-        for s in min_samples_splits: 
-            clf = DecisionTreeClassifier(criterion=c, min_samples_leaf=l,
-                min_samples_split=s)
-            print 'criterion:',c,'leaf:',l,'splits',s
-            performance(clf)
+Cs  = [1,10,100,1e3,1e4,1e5] 
+gammas = [1e-5,1e-4,1e-3,1e-2,1e-1,1]
+for c in Cs:
+    for g in gammas:
+        clf = SVC(kernel="rbf",gamma=g,C = c)
+        print 'C:',c,'gamma:',g
+        performance(clf,features,poi)
+        
 
-clf = DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=None,
-            max_features=None, max_leaf_nodes=None, min_samples_leaf=4,
-            min_samples_split=16, min_weight_fraction_leaf=0.0,
-            presort=False, random_state=None, splitter='best')
+clf = SVC(C=10000.0, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape=None, degree=3, gamma=0.1, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+
+performance(clf,features,poi)
 
 
-performance(clf)
+### without the new feature
+features_list2 = ['poi', 'exercised_stock_options', 'expenses','salary']
+data2 = featureFormat(my_dataset, features_list2, sort_keys = True)
+my_poi2, my_features2 = targetFeatureSplit(data2)
+features2 = np.array(my_features2)
+poi2 = np.array(my_poi2)
+performance(clf,features2,poi2)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
