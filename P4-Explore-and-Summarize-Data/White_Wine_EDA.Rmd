@@ -1,4 +1,4 @@
-Exploratory Data Analysis of Quality and Physicochemical Properties and White Wine
+Exploratory Data Analysis of Quality and Physicochemical Properties of White Wine
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
