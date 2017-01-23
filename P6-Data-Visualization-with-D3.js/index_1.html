@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  	<style> 
+      circle {
+        stroke-width: 0;
+        opacity: 0.7;
+      }
+      h2 {
+        text-align: center;
+        color: black;
+      }
+    </style>
+    <script type="text/javascript">  
+      function draw(geo_data) {
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin,
+            height = 800 - margin;
+
+        d3.select('body')
+            .append('h2')
+
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width + margin)
+            .attr("height", height + margin)
+            .append('g')
+            .attr('class', 'map'); 
+
+        //choose alberUsa projection to display Alaska and Hawaii at the bottom http://bl.ocks.org/mbostock/4090848 
+        var projection = d3.geo.albersUsa() 
+                            .scale(1000) 
+                            .translate([width/1.5, height/2]); 
+
+        var path = d3.geo.path().projection(projection); 
+
+        var map = svg.selectAll('path')
+                    .data(geo_data.features) 
+                    .enter() 
+                    .append('path') 
+                    .attr('d',path) 
+                    .style('fill', 'white') 
+                    .style('stroke', 'black')
+                    .style('stroke-width', 0.5);
+
+        var i = 1;
+
+        function updataChart(dataSource) {//http://stackoverflow.com/questions/26128426/d3-how-to-dynamically-refresh-a-graph-by-changing-the-data-file-source
+            d3.selectAll('circle').remove();
+            
+            d3.select('h2')
+            .text('Percentage of delayed departure flights in US airports in 2001/' + i);
+
+          i = i + 1;
+          function plot_points(flight_data) { //only use US data of a given year
+            function agg_flights(leaves) { //leaves already contain origin information in the data with a particular iata, for all month
+                var coord = projection([leaves[0].longitude_deg,leaves[0].latitude_deg]);
+
+                if (coord !== null){ //plot outside the alberUsa map
+                	var center_x = coord[0]; 
+                	var center_y = coord[1];
+                }
+                else
+                {
+                    var center_x = 0; 
+                	var center_y = 0;	
+                }
+
+                var total_delayed = d3.sum(leaves, function(d) { //a given data in d
+                	if (d['DepDelay'] > 0) {
+                		return 1;
+                	}
+                	else
+                	{
+                		return 0;
+                	}
+                });
+
+                var total_flights = leaves.length;
+
+                var delay_per = 1.0*total_delayed / total_flights;
+
+                return {
+                  'delay_per': delay_per,
+                  'x':center_x,
+                  'y':center_y
+  	            };
+  	        }
+
+  	        function outside_map(d) {
+  	        	if (d.values["x"] == 0) {
+  	        		return 'white';
+  	        	}
+  	        	else {
+  	        		return color(d.values['delay_per']);
+  	        	}
+  	        }
+
+        	var nested = d3.nest()
+                           .key(function(d) {return d['Origin'];}) //no aggre over yeras
+                           //http://www.d3noob.org/2014/02/grouping-and-summing-data-using-d3nest.html
+                           .rollup(agg_flights)
+                           .entries(flight_data);
+
+            var flight_extent = d3.extent(nested, function(d) {
+                return d.values['delay_per'];
+                });
+
+	        var radius = d3.scale.sqrt()
+	                           .domain(flight_extent )
+	                           .range([1,10]);
+
+          var color = d3.scale.linear()
+                            .domain(flight_extent)
+                            .range(["#67a9cf", "#ef8a62"]); //http://www.jeromecukier.net/blog/2011/08/11/d3-scales-and-color/
+                            //http://colorbrewer2.org/#type=diverging&scheme=RdBu&n=3
+
+            svg.append('g')
+              .attr('class', 'bubble')
+              .selectAll('circle')
+              .data(nested)
+              .enter()
+              .append('circle')
+              .attr('cx',function(d) {return d.values["x"];}) //access to the cx value, with key 'x', the value is center_x
+              .attr('cy',function(d) {return d.values["y"];})
+              .attr('r', function(d){
+              	return radius(d.values['delay_per'])})
+              .style('fill',outside_map)
+              .style('stroke',outside_map);//add radius as the actual delay percentage
+
+
+
+			//color scale http://bl.ocks.org/pykerl/5637707
+        }
+        d3.csv(dataSource, function(d) {
+            d['DepDelay'] = +d['DepDelay'];
+            d['longitude_deg'] = +d['longitude_deg'];
+            d['latitude_deg'] = + d['latitude_deg'];
+            return d;
+           }, plot_points); 
+
+      }
+
+      var dataSources = []; 
+      dataSources.push('/data/2001_1.csv');
+      dataSources.push('/data/2001_2.csv');
+      dataSources.push('/data/2001_3.csv');
+      dataSources.push('/data/2001_4.csv');
+      dataSources.push('/data/2001_5.csv');
+      dataSources.push('/data/2001_6.csv');
+      dataSources.push('/data/2001_7.csv');
+      dataSources.push('/data/2001_8.csv');
+      dataSources.push('/data/2001_9.csv');
+      dataSources.push('/data/2001_10.csv');
+      dataSources.push('/data/2001_11.csv');
+      dataSources.push('/data/2001_12.csv');
+      var data_index = 0; //used for stopping
+          var data_interval = setInterval(function(){
+            updataChart(dataSources[data_index]); 
+
+            data_index++;
+
+            //this index increment to track and stop the iteration
+            if(data_index>= dataSources.length){
+              clearInterval(data_interval);
+
+              //add button interaction?
+              //create all buttons first and then bind data separately 
+
+
+            } 
+          },4000); 
+
+        //airport csv from http://ourairports.com/data/
+      };
+      </script>
+  </head>
+<body>
+  <script type="text/javascript">
+
+d3.json("/data/gz_2010_us_040_00_20m.json", draw); 
+//http://eric.clst.org/Stuff/USGeoJSON
+
+  </script>
+</body>
+</html>
