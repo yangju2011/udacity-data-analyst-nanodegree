@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+	<style> 
+	    h2 {
+	        text-align: center;
+	        color: black;
+	        font-size: 200%;
+	    	}
+
+    </style>
+    <script type="text/javascript">  
+        function draw(data) {
+        "use strict";
+        var margin = 150,
+            width = 800 - margin, //make it smaller
+            height = 600 - margin;
+
+        d3.select('body')
+            .append('h2')
+            .text('September flights cancel rate skyrockets after 9/11');
+
+          var svg = d3.select("body")
+            			.append("svg") /* append SVG, pass to dimple.chart*/
+              			.attr("width", width + margin)
+              			.attr("height", height + margin)
+            			.append('g')
+                		.attr('class','chart');
+
+        	var myChart = new dimple.chart(svg, data); /*create new chart, with specified element: d3 selection svg + javascript object data*/
+	        var x = myChart.addTimeAxis("x", "month"); /*axis 3 essential line*/
+	        myChart.addMeasureAxis("y", "cancel_rate"); /*axis*/
+	        x.dataParseFormat = "%m"; /*4 digit year format to the correct year */
+		  	x.tickFormat = "%m";
+			myChart.addSeries('origin', dimple.plot.line);
+			myChart.addSeries('origin', dimple.plot.scatter); /*series, type of chart;  axis disaggregation null --> group by another column ; change chart type*/
+          	myChart.draw(); 
+
+          	/*function update(airport) { //highlight single line in dimple dj and remove all others or just dim them
+          		// Hide the shape or show it
+
+          		/*myChart.series.forEach(function(series){
+				    series.shapes.remove(); //http://stackoverflow.com/questions/27146622/remove-or-clear-previously-drawn-dimple-chart/27163550#27163550
+				    //axis intact, data not shown but still on the chart
+				});
+
+				myChart.data = dimple.filterData(data, 'origin', airport) //http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends
+				myChart.draw(1000);
+
+				//also update h2 title to the airport full name
+
+				}*/
+
+          	var origins = ['-']; //
+            data.forEach(function(d){ //iterate through the data with forEach, similar as for d in data
+            	if (origins.indexOf(d['origin']) == -1) {
+                	origins.push(d['origin']);}
+                });
+
+            origins.sort();
+
+            //create dropdown menu
+            //http://bl.ocks.org/jfreels/6734823/
+
+            //NEED TO FIGURE OUT HOW TO UPDATE THE CHART DATA
+          	var select = d3.select('body')
+                          .append('select') //similar as 'g', group in html 
+                          .attr('class','select')
+                          .on('change',function(d) { //d is the airport
+                          	var selectValue = d3.select(this).property('value');
+
+                          	//CHANGE OPACITY OF NON-AIRPOT DATA:)
+
+				            myChart.series.forEach(function(series){
+				    				series.shapes.remove();
+				    			});
+                          	myChart.data = dimple.filterData(data, 'origin', d) //http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends
+							myChart.draw(1000);
+                          });
+
+            var options = select.selectAll('option')
+                          .data(origins) //all years corresponding year, years need to be defined before using
+                          .enter()
+                          .append('option')
+                          .text(function(d){
+                            return d;}); 
+      	};
+
+      </script>
+  	</head>
+<body>
+  <script type="text/javascript">
+    d3.csv('/data/cancel_2001.csv', function(d) {
+            d['cancel_rate'] = +d['cancel_rate']; //add munipacity also in
+            return d; 
+           }, draw);   
+  	</script>
+</body>
+</html>

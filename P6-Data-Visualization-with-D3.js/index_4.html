@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+	<style> 
+	    h2 {
+	        text-align: center;
+	        color: black;
+	        font-size: 200%;
+	    	}
+	    	div.origins_buttons {
+        position: fixed;
+        top: 5px;
+        left: 50px;
+      }
+      div.origins_buttons div {
+          background-color: rgb(251, 201, 127);
+          padding: 3px;
+          margin: 7px;
+      }
+    </style>
+    <script type="text/javascript">  
+        function draw(data) {
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin,
+            height = 800 - margin;
+
+        d3.select('body')
+            .append('h2')
+            .text('September flights cancel rate skyrockets after 9/11');
+
+          var svg = d3.select("body")
+            			.append("svg") /* append SVG, pass to dimple.chart*/
+              			.attr("width", width + margin)
+              			.attr("height", height + margin)
+            			.append('g')
+                		.attr('class','chart');
+
+        	var myChart = new dimple.chart(svg, data); /*create new chart, with specified element: d3 selection svg + javascript object data*/
+	        var x = myChart.addTimeAxis("x", "month"); /*axis 3 essential line*/
+	        myChart.addMeasureAxis("y", "cancel_rate"); /*axis*/
+	        x.dataParseFormat = "%m"; /*4 digit year format to the correct year */
+		  	x.tickFormat = "%m";
+			myChart.addSeries('origin', dimple.plot.line);
+			myChart.addSeries('origin', dimple.plot.scatter); /*series, type of chart;  axis disaggregation null --> group by another column ; change chart type*/
+          	myChart.draw(); 
+
+          	function update(airport) { //highlight single line in dimple dj and remove all others or just dim them
+          		//same
+          		exit.remove(); //http://jsfiddle.net/spanndemic/5JRMt/
+          	}
+
+          	var origins = [];
+            data.forEach(function(d){ //iterate through the data with forEach, similar as for d in data
+            	if (origins.indexOf(d['origin']) == -1) {
+                	origins.push(d['origin']);}
+                });
+
+            origins.sort();
+
+            //create dropdown menu
+          	var options = d3.select('body')
+                          .append('div') //similar as 'g', group in html
+                          .attr('class','origins_options')
+                          .selectAll('div')
+                          .data(origins) //all years corresponding year, years need to be defined before using
+                          .enter()
+                          .append('div')
+                          .text(function(d){
+                            return d;}); 
+
+			d3.select('#options')
+			  .on('change', function() {
+			    var d = eval(d3.select(this).property('value'));
+			    update(d);
+              });
+
+               /* update(d);*/
+
+      	};
+
+      </script>
+  	</head>
+<body>
+  <script type="text/javascript">
+    d3.csv('/data/cancel_2001.csv', function(d) {
+            d['cancel_rate'] = +d['cancel_rate']; //add munipacity also in
+            return d; 
+           }, draw);   
+  	</script>
+</body>
+</html>
