@@ -1,5 +1,5 @@
 ## Summary
-On September 11 2001, terrorists attacked US with civilized airplanes, killing thousands of people and causing severe damages. Here I visualize the cancel rate of departure flights across US airports in 2001 and report that in September average cancel rate is much higher than any other month in US. Readers can also explore through select box to visualize monthly cancel rate at individual airport. 
+On September 11 2001, terrorists attacked US with civilized airplanes, killing thousands of people and causing severe damages. Here I visualize the cancel rate of departure flights across US airports in 2001 and report that in September average cancel rate is much higher than any other month in US, especially in Northeast where the attacks occurred. Readers can also explore through select box to visualize monthly cancel rate at individual airport. 
 
 ## Design
 I am interested in understanding the relationship between 9/11 attacks and cancel rate of departure flights in US airports. 
@@ -19,12 +19,14 @@ I used loop statement to go over all months automatically with set interval of 2
 ### version 4-6
 However, I realized that bubble chart did not well suit my goal of revealing time lapse change of cancel rate through the year. I decided to change my chart type of line chart and used dimple.js to plot cancel rate against month. I also decided to plot national average ‘-US’ first to attract audience with the title “September flights cancel rate skyrockets after 9/11 in US”, and then I created select box and allowed audience to explore different airports themselves. I used different colors to represent national average and selected airport to highlight the difference. 
 
+### version 7-8
+I calculated regional average of US airports flights delayed rates to have more insights in the geographical difference. I used python code to get the regional value and displayed regional and national value on the chart, giving audience a general introduction and comparison. Then audience can navigate with the select box to choose individual airports and compare to regional data. 
+
 ### parameter choice
 In the beginning, I used delay rate rather than cancel rate and expected to see an increased delay rate in September. However, I found the opposite trend: a decreased delay rate across US in September. I think the reason for such decrease was because many flights were canceled in September, and not considered as “delay”. A more straightforward parameter is “Cancelled” column itself. 
 
 ### narrative
-I created this author driven narrative to show that in year 2001, flights cancel rate skyrockets in September after 9/11 in US. Readers then can explore individual airports to compare the effect of such increase with national average. 
-
+I created this author driven narrative to show that in year 2001, flights cancel rate skyrockets in September after 9/11 in US. The increase was higher in Northeast area where the attacks occurred, and lower in West, which was far away from the attacks. We can also observe that throughout the year, Northeast tends to have higher cancel rate in general, probably due to busy airports in the Greater New York area. Readers then can explore individual airports to compare the effect of such increase with national and regional average. 
 
 ## Feedback
 ### version 1-3
@@ -61,5 +63,11 @@ Legend? What does each color stand for?
 - http://stackoverflow.com/questions/22988109/dimple-js-measure-axis-values
 - http://stackoverflow.com/questions/25695917/dimple-js-or-d3-js-draw-charts-legend-at-bottom-of-svg-element
 - http://jsbin.com/vecoq/8/edit?js,output
+- http://www.d3noob.org/2013/01/format-date-time-axis-with-specified.html
+- https://github.com/PMSI-AlignAlytics/dimple/wiki/dimple.axis
+- http://www2.census.gov/geo/pdfs/maps-data/maps/reference/us_regdiv.pdf
+- http://www.infoplease.com/ipa/A0110468.html
+- https://github.com/PMSI-AlignAlytics/dimple/wiki/dimple.series#addOrderRule
+
 
 
