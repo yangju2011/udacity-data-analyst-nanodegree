@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+	<style> 
+	    h2 {
+	        text-align: center;
+	        color: black;
+	        font-size: 200%;
+	    	}
+      p{
+          color: black;
+          font-size: 120%;
+          margin-left:200px;
+          margin-right:200px;
+        }
+      .select {
+          margin-left:200px;
+      }
+
+        
+    </style>
+    <script type="text/javascript">  
+        function draw(data) {
+        "use strict";
+        var margin = 75,
+            width = 1400 - margin, 
+            height = 1000 - margin;
+
+        //add title to summarize the chart
+        d3.select('body')
+            .append('h2')
+            .text('September flights cancel rate skyrockets after 9/11 in 2001 in US');
+
+        //add description of the background
+        d3.select('body')
+            .append('p')
+            .text('On September 11 2001, terrorists attacked US with civilized airplanes, killing thousands of people and causing severe damages. Cancel rate of departure flights across US airports in September  skyrockets in 2001.');
+
+        //get all airport full names from the data in a list
+        var names = []; 
+        data.forEach(function(d){ 
+              if (names.indexOf(d['name']) == -1) {
+                  names.push(d['name']);}
+                });
+        // sort airport names list so that select box diplays airport alphabetically 
+        names.sort();
+
+        //create dropdown menu to allow users to explore invidiual airport
+        //http://bl.ocks.org/jfreels/6734823/
+        var select = d3.select('body')
+                          .append('select') 
+                          .attr('class','select')
+                          .on('change',function(d) { 
+                            //select onchange function
+                            var selectValue = d3.select(this).property('value');
+                       		//update airport
+                            update(selectValue); //http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends
+                          });
+
+        //format option text to connect data to the displayed airport
+        var options = select.selectAll('option')
+                          .data(names)
+                          .enter()
+                          .append('option')
+                          .attr('id','MySelect')
+                          .text(function(d){
+                            return d;}); 
+
+        //first display average data only
+        //then display all other data and average data at the same time 
+        //update svg chart for individual airport selected in the bx
+        function update(airport) {
+        	//remove existing chart if any, so that only selected airport is displayed
+            d3.selectAll('svg').remove();
+
+            //create new svg 
+            var svg = d3.select("body")
+                  	.append("svg") 
+                  	.attr("width", width + margin)
+                 	  .attr("height", (height + margin)/2)
+                  	.append('g')
+                 	  .attr('class','chart');
+
+
+            var filtered = data.filter(function(d){
+            	//filter data and only display national average or the selected airport
+              	return d['name'] === airport || d['name'] === 'US average';
+            });
+
+            //creat a new chart
+            var myChart = new dimple.chart(svg, filtered); /*create new chart, with specified element: d3 selection svg + javascript object data*/
+
+            //add time axis on x with month
+            var x = myChart.addTimeAxis("x", "month"); 
+            //add cancel rate as y axis
+  	        var y = myChart.addMeasureAxis("y", "cancel_rate");
+  	        //change axis title
+            x.title ='Month'; //http://stackoverflow.com/questions/25416063/title-for-charts-and-axes-in-dimple-js-charts
+  	        y.title = 'Cancel Rate';
+  	        //change axis font size
+            x.fontSize = 16; //https://github.com/PMSI-AlignAlytics/dimple/wiki/dimple.axis#fontSize
+            y.fontSize= 16;
+            //change x axis range, because some airports do not have data for all months
+            //http://stackoverflow.com/questions/26562129/how-to-overridemin-max-for-time-axis-in-dimple
+            x.overrideMin = new Date("01/01/2001 00:00:00");
+            x.overrideMax = new Date("12/01/2001 23:59:59");
+            //format month axis format to display month value only
+            //display month is text format http://www.d3noob.org/2013/01/format-date-time-axis-with-specified.html
+            x.dataParseFormat = "%B"; 
+  		  	  x.tickFormat = "%B";
+            //format cancel rate axis to percentage display https://github.com/PMSI-AlignAlytics/dimple/wiki/dimple.axis
+            y.tickFormat = "%"; 
+            //add data series by airport name
+  			    myChart.addSeries('name', dimple.plot.line);
+  			    myChart.addSeries('name', dimple.plot.scatter); /*series, type of chart;  axis disaggregation null --> group by another column ; change chart type*/
+  			   //add legend 
+            var myLegend = myChart.addLegend(width-2*margin, 100, 100, 50, "Right"); //http://stackoverflow.com/questions/25695917/dimple-js-or-d3-js-draw-charts-legend-at-bottom-of-svg-element
+            //change legend fontsize
+            myLegend.fontSize = 16;
+            //change dataseries color
+            myChart.assignColor(airport, 'red');
+            //for comparison, change national average data color to grey
+            myChart.assignColor("US average", '#797D7F'); //http://jsbin.com/vecoq/8/edit?js,output
+            //draw the chart
+            myChart.draw(); 
+          }
+
+		  //first display national average
+          update('US average'); 
+
+      	};
+
+      </script>
+  	</head>
+<body>
+  <script type="text/javascript">
+  //load processed data
+    d3.csv('/data/cancel_rate_by_region_2001.csv', function(d) {
+            d['cancel_rate'] = +d['cancel_rate']; 
+            return d; 
+           }, draw);   
+  	</script>
+</body>
+</html>
