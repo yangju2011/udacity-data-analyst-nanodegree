@@ -22,6 +22,8 @@ However, I realized that bubble chart did not well suit my goal of revealing tim
 ### version 7-8
 I calculated regional average of US airports flights delayed rates to have more insights in the geographical difference. I used python code to get the regional value and displayed regional and national value on the chart, giving audience a general introduction and comparison. Then audience can navigate with the select box to choose individual airports and compare to regional data. 
 
+Instead of using '-US-', I calculated regional average for "Northeast", "South", "Midwest", "West", "US average" using Python. 
+
 ### parameter choice
 In the beginning, I used delay rate rather than cancel rate and expected to see an increased delay rate in September. However, I found the opposite trend: a decreased delay rate across US in September. I think the reason for such decrease was because many flights were canceled in September, and not considered as “delay”. A more straightforward parameter is “Cancelled” column itself. 
 
