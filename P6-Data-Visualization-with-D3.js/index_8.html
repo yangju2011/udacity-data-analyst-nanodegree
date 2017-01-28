@@ -148,7 +148,7 @@
 <body>
   <script type="text/javascript">
   //load processed data
-    d3.csv('/data/cancel_rate_by_region_2001.csv', function(d) {
+    d3.csv('data/cancel_rate_by_region_2001.csv', function(d) {
             d['cancel_rate'] = +d['cancel_rate']; 
             return d; 
            }, draw);   
