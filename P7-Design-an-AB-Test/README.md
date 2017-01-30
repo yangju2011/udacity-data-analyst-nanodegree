@@ -1,0 +1,2 @@
+- Udacity_Free_Trial_Screener_AB_Test.pdf: Metric Choice, Variability, Sanity Check, Sign Tests, Results Analysis, Recommendation 
+- Udacity_Instruction.pdf: information of the experiment overview.
